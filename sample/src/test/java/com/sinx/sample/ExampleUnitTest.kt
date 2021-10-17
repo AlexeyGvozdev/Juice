@@ -1,4 +1,4 @@
-package com.sinx.juice
+package com.sinx.sample
 
 import org.junit.Test
 

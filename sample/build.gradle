@@ -7,7 +7,7 @@ android {
     compileSdk 30
 
     defaultConfig {
-        applicationId "com.sinx.juice"
+        applicationId "com.sinx.sample"
         minSdk 21
         targetSdk 30
         versionCode 1
