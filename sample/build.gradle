@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    compileSdk 30
+    compileSdk 31
 
     defaultConfig {
         applicationId "com.sinx.sample"
@@ -17,6 +17,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField 'String', 'WEB_SOCKET_URL', "\"" + getLocalIPv4().toString() + "\""
+            buildConfigField 'boolean', 'ENABLE_LOG', "true"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -37,7 +41,29 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.3.1'
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
+    def lifecycle_version = "2.4.0-rc01"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    implementation 'com.squareup.okio:okio:2.10.0'
+}
+
+
+static def getLocalIPv4() {
+    def ip4 = ""
+    NetworkInterface.getNetworkInterfaces()
+            .find { it.isUp() && !it.isLoopback() && !it.isVirtual() }
+            .each {
+                it.getInetAddresses()
+                        .find { !it.isLoopbackAddress() && it instanceof Inet4Address }
+                        .each { ip4 = it.getHostAddress() }
+            }
+    return ip4
+}
+
+task printIP {
+    doLast {
+        println getLocalIPv4()
+    }
 }
