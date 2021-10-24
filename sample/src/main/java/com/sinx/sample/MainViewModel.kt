@@ -1,5 +1,7 @@
 package com.sinx.sample
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import okio.Buffer
@@ -34,7 +36,7 @@ class MainViewModel : ViewModel() {
                     val socket = Socket(InetAddress.getByName(url), port).use { socket ->
                         socket.keepAlive = false
                         socket.tcpNoDelay = true
-                        Buffer().use { buffer ->
+//                        Buffer().use { buffer ->
                             PrintWriter(
                                 OutputStreamWriter(
                                     socket.getOutputStream(),
@@ -42,7 +44,7 @@ class MainViewModel : ViewModel() {
                                 )
                             ).use { writer ->
                                 this.writer = writer
-                                socket.getInputStream().source().use { reader ->
+                                socket.getInputStream().use { reader ->
                                     log("in bufreader")
                                     writer.apply {
                                         println("GET /socket.io/?EIO=3&transport=websocket HTTP/1.1")
@@ -57,21 +59,35 @@ class MainViewModel : ViewModel() {
                                         println("")
                                         flush()
                                     }
-                                    reader.timeout().timeout(80, TimeUnit.SECONDS)
+//                                    reader.timeout().timeout(80, TimeUnit.SECONDS)
                                     do {
                                         log("before readeline")
-                                        val read = reader.read(buffer, 15_000)
-
-                                        if (read != -1L) {
-                                            val str = buffer.readUtf8()
-                                            log("answer $str")
+                                        val buffer = ByteArray(1024)
+                                        val read: Int
+                                        if (Thread.currentThread().isInterrupted) {
+                                            Thread.currentThread().interrupt()
+                                            throw InterruptedException()
+                                        } else {
+                                            read = reader.read(buffer)
+                                            if (read != -1) {
+                                                val bytes = buffer.copyOfRange(0, read)
+                                                val str = String(bytes)
+                                                log("answer $str")
+                                                if (str.contains("Привет")) {
+                                                    Parser.read(bytes)
+                                                    val s = str.substringBefore("Пр") + "addTask"
+                                                    log(s)
+//                                                    writer.print(s)
+//                                                    writer.flush()
+                                                }
+                                            }
                                         }
-                                    } while (read != -1L && !Thread.currentThread().isInterrupted)
+                                    } while (read != -1)
                                     log("endreader")
                                 }
                             }
                         }
-                    }
+
                 } catch (t: Throwable) {
                     log("interup b ${t.toString()}")
                     val a = t
